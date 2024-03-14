@@ -49,7 +49,7 @@ def organize_and_print_future_paydays_with_year_end_total(paid_dates, pay_freque
 
     # Calculate future paydays
     for date_str in paid_dates:
-        payday = datetime.strptime(date_str, "%Y-%m-%d")
+        payday = datetime.strptime(date_str, "%m/%d/%Y")
         delta = get_pay_frequency_delta(pay_frequency, payday, is_leap)
         while payday.year == current_year:
             paydays_by_month[payday.strftime("%b")].append((payday.strftime("%d"), earnings_per_payday))
@@ -66,9 +66,28 @@ def organize_and_print_future_paydays_with_year_end_total(paid_dates, pay_freque
     print("-" * 50)
     print(f"Year-End Total Earnings: ${total_earnings:.2f}")
 
-# Example usage with hypothetical conditions
-#user_dates = ['2024-01-14', '2024-01-28', '2024-02-11', '2024-02-25', '2024-03-11', '2024-03-25']  # Initial paid dates
-#pay_frequency = 'bi-weekly'  # Assumed pay frequency
-#pay_rate = 31  # Assumed hourly rate
-#salary_mode = 'hourly'  # Payment mode
-#organize_and_print_future_paydays_with_year_end_total(user_dates, pay_frequency, pay_rate, salary_mode)
+# Main program to handle user input and integrate with the payroll logic
+def main():
+    # User input section
+    print("Enter your salary mode ('hourly' or 'salary'): ")
+    salary_mode = input().strip().lower()
+    print("Enter your hourly rate or annual salary: ")
+    pay_rate = float(input().strip())
+    
+    # Pay frequency selection
+    print("Select your pay frequency by entering the corresponding number:")
+    print("1. Weekly\n2. Bi-weekly\n3. Monthly")
+    frequency_options = {'1': 'weekly', '2': 'bi-weekly', '3': 'monthly'}
+    frequency_choice = input("Your choice (1, 2, or 3): ").strip()
+    pay_frequency = frequency_options.get(frequency_choice, 'bi-weekly')  # Default to bi-weekly
+    
+    # Last pay dates input
+    print("Enter your last 3-4 pay dates in the format MM/DD/YYYY, separated by commas:")
+    last_pay_dates_str = input().strip()
+    last_pay_dates = last_pay_dates_str.split(',')
+
+    # Process and output future paydays and total earnings
+    organize_and_print_future_paydays_with_year_end_total(last_pay_dates, pay_frequency, pay_rate, salary_mode)
+
+if __name__ == "__main__":
+    main()
