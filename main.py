@@ -6,9 +6,11 @@ WEEKS_PER_YEAR = 52
 MONTHS_PER_YEAR = 12
 HOURS_PER_WEEK = 40
 
+
 # Function to determine if it's a leap year
 def is_leap_year(year):
     return calendar.isleap(year)
+
 
 # Function to calculate pay intervals based on frequency
 def get_pay_frequency_delta(pay_frequency, latest_pay_date, is_leap):
@@ -21,23 +23,33 @@ def get_pay_frequency_delta(pay_frequency, latest_pay_date, is_leap):
     else:
         raise ValueError("Invalid pay frequency. Choose 'weekly', 'bi-weekly', or 'monthly'.")
 
-# Function to calculate earnings per payday
+
+## Function to calculate earnings per payday
 def calculate_earnings(pay_frequency, pay_rate, salary_mode):
     if salary_mode == 'hourly':
         weekly_pay = pay_rate * HOURS_PER_WEEK
+        if pay_frequency == 'weekly':
+            return weekly_pay
+        elif pay_frequency == 'bi-weekly':
+            return weekly_pay * 2  # For bi-weekly, pay for two weeks
+        elif pay_frequency == 'monthly':
+            return weekly_pay * (WEEKS_PER_YEAR / MONTHS_PER_YEAR)  # Average weeks per month
+        else:
+            raise ValueError("Invalid pay frequency. Choose 'weekly', 'bi-weekly', or 'monthly'.")
     elif salary_mode == 'salary':
-        weekly_pay = pay_rate / WEEKS_PER_YEAR
+        # If salary mode, pay_rate is annual salary
+        if pay_frequency == 'weekly':
+            pay_periods = WEEKS_PER_YEAR
+        elif pay_frequency == 'bi-weekly':
+            pay_periods = WEEKS_PER_YEAR / 2
+        elif pay_frequency == 'monthly':
+            pay_periods = MONTHS_PER_YEAR
+        else:
+            raise ValueError("Invalid pay frequency. Choose 'weekly', 'bi-weekly', or 'monthly'.")
+        return pay_rate / pay_periods  # This calculation remains correct for salary mode
     else:
         raise ValueError("Invalid salary mode. Choose 'hourly' or 'salary'.")
 
-    if pay_frequency == 'weekly':
-        return weekly_pay
-    elif pay_frequency == 'bi-weekly':
-        return weekly_pay * 2
-    elif pay_frequency == 'monthly':
-        return weekly_pay * WEEKS_PER_YEAR / MONTHS_PER_YEAR
-    else:
-        raise ValueError("Invalid pay frequency. Choose 'weekly', 'bi-weekly', or 'monthly'.")
 
 # Function to organize and print future paydays with earnings and calculate year-end total
 def organize_and_print_future_paydays_with_year_end_total(paid_dates, pay_frequency, pay_rate, salary_mode):
@@ -49,7 +61,10 @@ def organize_and_print_future_paydays_with_year_end_total(paid_dates, pay_freque
 
     # Calculate future paydays
     for date_str in paid_dates:
-        payday = datetime.strptime(date_str, "%m/%d/%Y")
+        # Strip any leading or trailing whitespace from the date string
+        clean_date_str = date_str.strip()
+        # Now parse the cleaned date string
+        payday = datetime.strptime(clean_date_str, "%m/%d/%Y")
         delta = get_pay_frequency_delta(pay_frequency, payday, is_leap)
         while payday.year == current_year:
             paydays_by_month[payday.strftime("%b")].append((payday.strftime("%d"), earnings_per_payday))
@@ -66,6 +81,7 @@ def organize_and_print_future_paydays_with_year_end_total(paid_dates, pay_freque
     print("-" * 50)
     print(f"Year-End Total Earnings: ${total_earnings:.2f}")
 
+
 # Main program to handle user input and integrate with the payroll logic
 def main():
     # User input section
@@ -73,14 +89,14 @@ def main():
     salary_mode = input().strip().lower()
     print("Enter your hourly rate or annual salary: ")
     pay_rate = float(input().strip())
-    
+
     # Pay frequency selection
     print("Select your pay frequency by entering the corresponding number:")
     print("1. Weekly\n2. Bi-weekly\n3. Monthly")
     frequency_options = {'1': 'weekly', '2': 'bi-weekly', '3': 'monthly'}
     frequency_choice = input("Your choice (1, 2, or 3): ").strip()
     pay_frequency = frequency_options.get(frequency_choice, 'bi-weekly')  # Default to bi-weekly
-    
+
     # Last pay dates input
     print("Enter your last 3-4 pay dates in the format MM/DD/YYYY, separated by commas:")
     last_pay_dates_str = input().strip()
@@ -88,6 +104,7 @@ def main():
 
     # Process and output future paydays and total earnings
     organize_and_print_future_paydays_with_year_end_total(last_pay_dates, pay_frequency, pay_rate, salary_mode)
+
 
 if __name__ == "__main__":
     main()
